@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rohit Kumar - Interactive Resume</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutral Harmony -->
+    <!-- Application Structure Plan: A two-column dashboard layout. The left column is a fixed navigation and contact card, providing constant access to key info and navigation. The right column is a scrollable content area. This structure allows recruiters to either get a quick overview from the left panel or dive deep into specific sections like skills, experience, or projects using the navigation. The core interaction is a skills filter that dynamically highlights relevant experience and projects, directly connecting abilities to application, which is far more intuitive and useful for a technical recruiter than a static list. -->
+    <!-- Visualization & Content Choices: 
+        - Professional Summary (Report Info) -> Goal: Inform -> Method: Prominent text block -> Interaction: None -> Justification: The summary needs to be the first thing a user reads to get context.
+        - Technical Skills (Report Info) -> Goal: Compare & Organize -> Method: Chart.js Polar Area Chart & interactive filter tags -> Interaction: Hover on chart for details, click on tags to filter page content -> Justification: A static list of skills is unengaging. The polar chart provides a quick visual summary of strengths. The filter tags create a powerful interactive experience, allowing a user to ask "Show me where you used your Troubleshooting skills" and see the answer instantly, which is highly effective.
+        - Experience & Education (Report Info) -> Goal: Show Change/Progression -> Method: Custom vertical timeline (HTML/Tailwind) -> Interaction: Subtle hover effects -> Justification: A timeline is a more visually compelling way to present chronological information than a standard list, showing career progression clearly.
+        - Key Projects (Report Info) -> Goal: Organize & Inform -> Method: Content-aware cards in a grid layout -> Interaction: Filterable by skill tags -> Justification: Cards allow for easy scanning of key project details. The filtering interaction is key to connecting skills to real-world application.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F7F4;
+            color: #3D405B;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .nav-link.active, .nav-link:hover {
+            color: #E07A5F;
+            transform: translateX(5px);
+        }
+        .skill-tag {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .content-card, .timeline-item {
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+        .content-card.filtered-out, .timeline-item.filtered-out {
+            opacity: 0.2;
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+        <div class="lg:flex lg:space-x-12">
+            
+            <aside class="lg:w-1/3 lg:sticky lg:top-12 self-start mb-12 lg:mb-0">
+                <div class="p-8 bg-white rounded-2xl shadow-sm border border-gray-200">
+                    <div class="text-center">
+                        <h1 class="text-3xl font-bold text-gray-800">Rohit Kumar</h1>
+                        <p class="text-md text-[#E07A5F] mt-1">IT Infrastructure Professional</p>
+                    </div>
+                    <div class="mt-8 space-y-4 text-center">
+                        <div class="flex items-center justify-center space-x-2 text-gray-600">
+                            <span>📧</span>
+                            <a href="mailto:rohit7ngod@gmail.com" class="hover:text-[#E07A5F]">rohit7ngod@gmail.com</a>
+                        </div>
+                        <div class="flex items-center justify-center space-x-2 text-gray-600">
+                            <span>📞</span>
+                            <span>+91 903183560</span>
+                        </div>
+                        <div class="flex items-center justify-center space-x-2 text-gray-600">
+                           <span>🔗</span>
+                            <a href="https://github.com/rohit7nkuamr" target="_blank" class="hover:text-[#E07A5F]">GitHub</a>
+                             <span class="text-gray-300">|</span>
+                            <a href="https://linkedin.com/in/rohit7nkumar" target="_blank" class="hover:text-[#E07A5F]">LinkedIn</a>
+                        </div>
+                    </div>
+                    <nav class="mt-12">
+                        <ul class="space-y-3 text-lg font-medium text-gray-500">
+                            <li><a class="nav-link flex items-center space-x-3" data-target="summary"><span>🎯</span><span>Summary</span></a></li>
+                            <li><a class="nav-link flex items-center space-x-3" data-target="skills"><span>🛠️</span><span>Skills</span></a></li>
+                            <li><a class="nav-link flex items-center space-x-3" data-target="experience"><span>📈</span><span>Experience</span></a></li>
+                            <li><a class="nav-link flex items-center space-x-3" data-target="projects"><span>📂</span><span>Projects</span></a></li>
+                            <li><a class="nav-link flex items-center space-x-3" data-target="education"><span>🎓</span><span>Education</span></a></li>
+                        </ul>
+                    </nav>
+                </div>
+            </aside>
+            
+            <main class="lg:w-2/3">
+                <section id="summary" class="mb-12">
+                    <div class="p-8 bg-white rounded-2xl shadow-sm border border-gray-200">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Professional Summary</h2>
+                        <p class="text-lg text-gray-600 leading-relaxed">Highly Proficient and Adaptive Technical Professional with a strong foundation in System Maintenance, Troubleshooting, and Secure Infrastructure Implementation. Proven experience in managing system availability and performance (servers/applications), Linux/Windows environments, and providing end-to-end technical support. Possesses the analytical skills to diagnose and resolve software, OS, and connectivity issues efficiently. Seeking to leverage hands-on technical skills in an IT Infrastructure Support (L1/L2) role.</p>
+                    </div>
+                </section>
+                
+                <section id="skills" class="mb-12">
+                    <div class="p-8 bg-white rounded-2xl shadow-sm border border-gray-200">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">Technical Skills</h2>
+                        <p class="text-md text-gray-500 mb-6">This chart provides a visual overview of my core competencies. Click on the skill tags below to filter the Experience and Projects sections to see how these skills have been applied.</p>
+                        <div class="chart-container mb-8">
+                            <canvas id="skillsChart"></canvas>
+                        </div>
+                        <div id="skill-tags-container" class="flex flex-wrap justify-center gap-3">
+                        </div>
+                    </div>
+                </section>
+                
+                <section id="experience" class="mb-12">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 ml-4">Professional Experience</h2>
+                    <div id="experience-container" class="relative border-l-2 border-dashed border-[#81B29A] ml-4">
+                    </div>
+                </section>
+                
+                <section id="projects" class="mb-12">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 ml-4">Key Projects</h2>
+                    <div id="projects-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    </div>
+                </section>
+
+                <section id="education" class="mb-12">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 ml-4">Education</h2>
+                     <div id="education-container" class="relative border-l-2 border-dashed border-[#81B29A] ml-4">
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+<script>
+const resumeData = {
+    skills: [
+        { name: 'OS & Hardware', level: 5, keywords: ['OS', 'Hardware', 'Windows', 'Linux', 'Desktop Administration'], description: 'Proficiency in Windows, foundational Linux, and familiarity with server/storage hardware.' },
+        { name: 'Troubleshooting & Support', level: 4, keywords: ['Troubleshooting', 'Support', 'User Support', 'LAN'], description: 'Diagnosing and resolving software, OS, and connectivity issues for end-users.' },
+        { name: 'System & Network Admin', level: 4, keywords: ['Admin', 'Maintenance', 'Server Management', 'Backup', 'Security'], description: 'System configuration, maintenance, performance monitoring, and security implementation.' },
+        { name: 'Development & Data Tools', level: 3, keywords: ['Development', 'Python', 'SQL', 'Git', 'Next.js', 'PostgreSQL'], description: 'Utilizing development tools for system creation, data processing, and version control.' },
+    ],
+    experience: [
+        {
+            title: 'Founder & Chief Executive Officer',
+            company: 'Forstval Studio',
+            dates: 'Jan 2024 – Present',
+            description: [
+                'Directed the technical architecture and system governance for various projects, ensuring operational stability and security implementation.',
+                'Managed the complete software development lifecycle, including continuous System Maintenance, updates, and quality assurance to minimize deployment risks.'
+            ],
+            tags: ['Admin', 'Maintenance', 'Security', 'Development']
+        },
+        {
+            title: 'HR Intern (Social Internship)',
+            company: 'Glad Bharat Foundation',
+            dates: 'May 2023 - Aug 2023',
+            description: [
+                'Managed cross-functional teams and initiatives, developing strong Collaboration and clear verbal and written communication skills essential for effective User Support and team coordination.'
+            ],
+            tags: ['Support', 'User Support']
+        }
+    ],
+    projects: [
+        {
+            title: 'PROJECT-ALPHA Inventory Management',
+            subtitle: 'Operational Reliability & Maintenance',
+            description: 'Advanced Python application for Inventory Management. Personally traveled to the Indian Army site to **setup, configure, and install the application** on their existing systems, handling OS and hardware compatibility checks. Applied performance optimizations and data reconciliation algorithms to ensure high system availability and data integrity.',
+            keywords: ['Python', 'System Reliability', 'Performance Optimization', 'Data Integrity', 'Maintenance Tracking', 'On-Site Deployment', 'OS Setup'],
+            tags: ['Development', 'Python', 'Maintenance', 'Server Management', 'Admin', 'OS', 'Hardware']
+        },
+        {
+            title: 'Properties Trendz',
+            subtitle: 'System Implementation & User Support',
+            description: 'Full-Stack Real Estate Platform using Next.js and PostgreSQL. Installed and configured a robust authentication system, implementing access controls and preparing the foundation for user support and management.',
+            keywords: ['Full-Stack', 'Secure Authentication', 'Troubleshooting', 'PostgreSQL', 'Access Controls'],
+            tags: ['Development', 'Next.js', 'PostgreSQL', 'Security', 'Troubleshooting', 'User Support']
+        }
+    ],
+    education: [
+        {
+            degree: 'B.Tech CSE (Graphics & Gaming)',
+            institution: 'UPES, Dehradun',
+            dates: 'Nov 2022 - Present',
+            description: ['Pursuing a comprehensive curriculum in computer science with a specialization in graphics and gaming technologies.'],
+            tags: []
+        }
+    ]
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    const skillsChartCtx = document.getElementById('skillsChart').getContext('2d');
+    const skillTagsContainer = document.getElementById('skill-tags-container');
+    const experienceContainer = document.getElementById('experience-container');
+    const projectsContainer = document.getElementById('projects-container');
+    const educationContainer = document.getElementById('education-container');
+    
+    let activeFilter = 'all';
+
+    const renderSkills = () => {
+        new Chart(skillsChartCtx, {
+            type: 'polarArea',
+            data: {
+                labels: resumeData.skills.map(s => s.name),
+                datasets: [{
+                    label: 'Skill Proficiency',
+                    data: resumeData.skills.map(s => s.level),
+                    backgroundColor: [
+                        'rgba(129, 178, 154, 0.7)',
+                        'rgba(242, 204, 143, 0.7)',
+                        'rgba(224, 122, 95, 0.7)',
+                        'rgba(61, 64, 91, 0.7)'
+                    ],
+                    borderColor: [
+                        '#81B29A',
+                        '#F2CC8F',
+                        '#E07A5F',
+                        '#3D405B'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(61, 64, 91, 0.1)' },
+                        grid: { color: 'rgba(61, 64, 91, 0.1)' },
+                        pointLabels: {
+                            font: { size: 14, family: 'Inter', weight: '600' },
+                            color: '#3D405B'
+                        },
+                        ticks: {
+                            display: false,
+                            backdropColor: 'transparent'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return resumeData.skills[context.dataIndex].description;
+                            }
+                        },
+                        bodyFont: { size: 12, family: 'Inter' },
+                        titleFont: { size: 14, family: 'Inter', weight: 'bold' },
+                        padding: 10,
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        cornerRadius: 8
+                    }
+                }
+            }
+        });
+
+        let tagsHTML = '<button class="skill-tag active bg-[#E07A5F] text-white px-4 py-2 rounded-full text-sm font-medium" data-filter="all">All Skills</button>';
+        resumeData.skills.forEach(skill => {
+            tagsHTML += `<button class="skill-tag bg-gray-200 text-gray-700 hover:bg-gray-300 px-4 py-2 rounded-full text-sm font-medium" data-filter="${skill.name}">${skill.name}</button>`;
+        });
+        skillTagsContainer.innerHTML = tagsHTML;
+    };
+    
+    const createTimelineItem = (item, isExperience = true) => {
+        const descriptionHTML = item.description.map(p => `<p class="text-gray-600 mb-2">${p}</p>`).join('');
+        const title = isExperience ? `<h3 class="text-xl font-bold text-gray-800">${item.title}</h3><p class="text-md text-gray-500 font-medium">${item.company}</p>` : `<h3 class="text-xl font-bold text-gray-800">${item.degree}</h3><p class="text-md text-gray-500 font-medium">${item.institution}</p>`;
+        
+        return `
+            <div class="timeline-item mb-10 ml-8 content-card" data-tags='${JSON.stringify(item.tags)}'>
+                <span class="absolute flex items-center justify-center w-6 h-6 bg-[#81B29A] rounded-full -left-3 ring-8 ring-white">
+                    <span class="text-white text-sm">${isExperience ? '💼' : '🎓'}</span>
+                </span>
+                <div class="p-6 bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="flex justify-between items-center mb-2">
+                        <div>${title}</div>
+                        <span class="bg-[#F2CC8F] text-yellow-800 text-sm font-semibold mr-2 px-3 py-1 rounded-full">${item.dates}</span>
+                    </div>
+                    <div class="text-base font-normal">${descriptionHTML}</div>
+                </div>
+            </div>`;
+    };
+
+    const renderExperience = () => {
+        let html = '';
+        resumeData.experience.forEach(item => {
+            html += createTimelineItem(item, true);
+        });
+        experienceContainer.innerHTML = html;
+    };
+    
+    const renderEducation = () => {
+        let html = '';
+        resumeData.education.forEach(item => {
+            html += createTimelineItem(item, false);
+        });
+        educationContainer.innerHTML = html;
+    };
+
+    const renderProjects = () => {
+        let html = '';
+        resumeData.projects.forEach(project => {
+            const keywordsHTML = project.keywords.map(kw => `<span class="bg-gray-200 text-gray-700 text-xs font-medium mr-2 mb-2 px-2.5 py-1 rounded-full">${kw}</span>`).join('');
+            html += `
+            <div class="content-card bg-white p-6 rounded-2xl shadow-sm border border-gray-200" data-tags='${JSON.stringify(project.tags)}'>
+                <h3 class="text-xl font-bold text-gray-800">${project.title}</h3>
+                <p class="text-md font-medium text-[#E07A5F] mb-3">${project.subtitle}</p>
+                <p class="text-gray-600 mb-4">${project.description}</p>
+                <div class="flex flex-wrap">${keywordsHTML}</div>
+            </div>`;
+        });
+        projectsContainer.innerHTML = html;
+    };
+    
+    const handleFilter = (filter) => {
+        activeFilter = filter;
+        document.querySelectorAll('.skill-tag').forEach(tag => {
+            tag.classList.toggle('active', tag.dataset.filter === filter);
+            tag.classList.toggle('bg-[#E07A5F]', tag.dataset.filter === filter);
+            tag.classList.toggle('text-white', tag.dataset.filter === filter);
+            tag.classList.toggle('bg-gray-200', tag.dataset.filter !== filter);
+            tag.classList.toggle('text-gray-700', tag.dataset.filter !== filter);
+        });
+
+        document.querySelectorAll('.content-card').forEach(card => {
+            if (filter === 'all') {
+                card.classList.remove('filtered-out');
+                return;
+            }
+            const cardTags = JSON.parse(card.dataset.tags);
+            const skillObject = resumeData.skills.find(s => s.name === filter);
+            const filterKeywords = skillObject ? skillObject.keywords : [];
+            
+            const hasMatch = cardTags.some(tag => filterKeywords.includes(tag));
+            card.classList.toggle('filtered-out', !hasMatch);
+        });
+    };
+
+    skillTagsContainer.addEventListener('click', (e) => {
+        if (e.target.matches('.skill-tag')) {
+            const filter = e.target.dataset.filter;
+            handleFilter(filter);
+        }
+    });
+
+    const navLinks = document.querySelectorAll('.nav-link');
+    const sections = document.querySelectorAll('section');
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            const targetId = link.getAttribute('data-target');
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) {
+                targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    });
+
+    window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            if (pageYOffset >= sectionTop - 100) {
+                current = section.getAttribute('id');
+            }
+        });
+
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('data-target') === current) {
+                link.classList.add('active');
+            }
+        });
+    });
+
+    renderSkills();
+    renderExperience();
+    renderProjects();
+    renderEducation();
+});
+</script>
+</body>
+</html>
